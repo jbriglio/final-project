@@ -1,0 +1,17 @@
+library(readxl)
+winning_rb <- read_excel("winning rb.xlsx")
+winning_rb <- subset(winning_rb, select= -c(Player, Team))
+row.names(winning_rb) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_rb <- as.matrix.data.frame(winning_rb)
+
+losing_rb <- read_excel("losing rb.xlsx")
+losing_rb <- subset(losing_rb, select= -c(Player, Team))
+row.names(losing_rb) <- (c("NYJ", "SF","CLE","DEN","NYG","CHI","TB","HOU"))
+losing_rb <- as.matrix.data.frame(losing_rb)
+
+t.test(winning_rb[,1], losing_rb[,1], paired = TRUE) 
+t.test(winning_rb[,2], losing_rb[,2], paired = TRUE)
+t.test(winning_rb[,3], losing_rb[,3], paired = TRUE)
+t.test(winning_rb[,4], losing_rb[,4], paired = TRUE)
+t.test(winning_rb[,5], losing_rb[,5], paired = TRUE)
+t.test(winning_rb[,6], losing_rb[,6], paired = TRUE)

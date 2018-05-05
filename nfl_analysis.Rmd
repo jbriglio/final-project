@@ -1,0 +1,595 @@
+---
+title: "NFL Analysis"
+author: "Janie Briglio"
+date: "4/26/2018"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+```{r setup, include=FALSE}
+library(ggmap)
+library(tidyverse)
+library(maps)
+library(mapproj)
+library(readxl)
+library(dplyr)
+library(knitr)
+library(purrr)
+library(broom)
+library(kableExtra)
+library(readtext)
+library(tidytext)
+library(ggplot2)
+library(tidyr)
+library(wordcloud)
+library(reshape2)
+```
+##Introduction to Project 
+The main objective of this project is to see what makes a team win more games. I looked at quaterbacks(passing), wide receivers(receiving), running backs(rushing), and defense, using winning percentages along with player statistics and the current NFL draft. Additionally, I used text and sentiment analysis from current press conferences to see if coaches agreed with the importance of each position and their feelings about the upcoming season. 
+
+##Determing the Winning and Losing Teams 
+In order to decide which teams to look at, I looked at the overall winning percentages of each team. Then I separated the temas into divisions, showing the division winner and the division loser. This shows the highs and lows of each division, giving a good sample of what the winning teams are like and what the losing teams are like. The T test table below shows that these team do have different winning percentages, so they can be used to compare winning and losing teams.
+
+```{r, echo=FALSE}
+divisional_winners_losers <- read_excel("divisional winners and losers.xlsx")
+divisional_winners_losers <- as.matrix.data.frame(divisional_winners_losers)
+rownames(divisional_winners_losers) <- c("winning record", "losing record")
+
+average_winning <- (divisional_winners_losers[1,])
+average_losing <- (divisional_winners_losers[2,])
+wpt<- t.test(average_winning, average_losing, paired = TRUE) 
+wpttable <- map_df(list(wpt), tidy)
+kable(wpttable, caption= "T Test comparing Winning and Losing Team Winning Percentages", align = 'c')
+```
+
+##Map of the Top 8 and Bottom 8 Teams in the NFL
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=4.5, fig.width=3.5}
+map.1 <- get_map(location = c(-95.7129, 37.0902), zoom = 4, maptype = "roadmap")
+map.2 <- ggmap(map.1) +
+  geom_point(
+    aes(x = -94.5786 , y = 39.0997),
+    color = "red", size = 2) +
+  geom_point(
+    aes(x = -90.0715 , y = 29.9511),
+    color = "gold", size = 2) +
+  geom_point(
+    aes(x = -71.0589 , y = 42.3601),
+    color = "blue", size = 2) +
+  geom_point(
+    aes(x = -75.1652, y = 39.9526),
+    color = "green", size = 2) +
+  geom_point(
+    aes(x = -118.2437, y = 34.0522),
+    color = "black", size = 2) +
+  geom_point(
+    aes(x = -94.6859, y = 46.7296),
+    color = "purple", size = 2) +
+  geom_point(
+    aes(x = -79.9959, y = 40.4406),
+    color = "yellow", size = 2) +
+  geom_point(
+    aes(x = -81.6557, y = 30.3322),
+    color = "cyan", size = 2) +
+  geom_point(
+    aes(x = -74.0060, y = 40.7128),
+    color = "darkgreen", size = 2) +
+  geom_point(
+    aes(x = -74.0060, y = 40.7128),
+    color = "dodgerblue", size = 1) +
+  geom_point(
+    aes(x = -122.4194, y = 37.7749),
+    color = "darkred", size = 2) +
+  geom_point(
+    aes(x = -81.6944, y = 41.4993),
+    color = "brown", size = 2) +
+  geom_point(
+    aes(x = -104.9903, y = 39.7392),
+    color = "orange", size = 2) +
+  geom_point(
+    aes(x = -87.6298, y = 41.8781),
+    color = "darkorange", size = 2) +
+  geom_point(
+    aes(x = -82.4572, y = 27.9506),
+    color = "firebrick", size = 2) +
+  geom_point(
+    aes(x = -95.3698, y = 29.7604),
+    color = "white", size = 2)
+map.2
+```
+\pagebreak
+
+```{r, echo=FALSE}
+winning_percentages <- read_excel("winning percentages.xlsx")
+winning_percentages <- as.matrix.data.frame(winning_percentages)
+barplot(winning_percentages, 
+        names.arg=rownames(winning_percentages), 
+        main="2017 Season Winning Percentage", 
+        col = "darkblue", 
+        las = 2, 
+        cex.names=.7)
+```
+
+```{r, echo=FALSE}
+divisional_winners_losers <- read_excel("divisional winners and losers.xlsx")
+divisional_winners_losers <- as.matrix.data.frame(divisional_winners_losers)
+rownames(divisional_winners_losers) <- c("winning record", "losing record")
+barplot(height = divisional_winners_losers[1:2, 1:8], 
+        main="2017 Divisional Winners & Losers", 
+        col = c("darkblue", "red"), 
+        las = 2, 
+        beside = TRUE, 
+        cex.names=.7)
+```
+
+\pagebreak
+
+##Quarterback Analysis
+```{r, echo=FALSE, warning=FALSE}
+winning_quarterbacks <- read_excel("winning quarterbacks.xlsx")
+winning_quarterbacks <- subset(winning_quarterbacks, select= -c(Player, Team))
+row.names(winning_quarterbacks) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_quarterbacks <- as.matrix.data.frame(winning_quarterbacks)
+kable(winning_quarterbacks[1:8, 1:7], align = 'c', caption = "Statistics of the Quarterbacks of the Winning Teams")
+
+losing_quarterbacks <- read_excel("losing quarterbacks.xlsx")
+losing_quarterbacks <- subset(losing_quarterbacks, select= -c(Player, Team))
+row.names(losing_quarterbacks) <- (c("NYJ", "SF","CLE","DEN","NYG","CHI","TB","HOU"))
+losing_quarterbacks <- as.matrix.data.frame(losing_quarterbacks)
+kable(losing_quarterbacks[1:8, 1:7], align = 'c', caption = "Statistics of the Quaterbacks of the Losing Teams")
+
+qbt1 <- t.test(winning_quarterbacks[,1], losing_quarterbacks[,1], paired = TRUE) 
+qbt2 <- t.test(winning_quarterbacks[,2], losing_quarterbacks[,2], paired = TRUE)
+qbt3 <- t.test(winning_quarterbacks[,3], losing_quarterbacks[,3], paired = TRUE)
+qbt4 <- t.test(winning_quarterbacks[,4], losing_quarterbacks[,4], paired = TRUE)
+qbt5 <- t.test(winning_quarterbacks[,5], losing_quarterbacks[,5], paired = TRUE)
+qbt6 <- t.test(winning_quarterbacks[,6], losing_quarterbacks[,6], paired = TRUE)
+qbt7 <- t.test(winning_quarterbacks[,7], losing_quarterbacks[,7], paired = TRUE)
+qbttable <- map_df(list(qbt1, qbt2, qbt3, qbt4, qbt5, qbt6 ,qbt7), tidy)
+rownames(qbttable) <- c("Compl %", "Pass Yards", "YPA", "TD","Int", "Sacks", "Rating")
+kable(qbttable, caption= "T Test comparing Winning and Losing Team QB Statistics", align = 'c')
+```
+
+###Interpretation 
+The T-table shows that there is a difference in the quarterback statistics between the winning teams and the losing teams for all of the presented statistcs categories except interceptions. Quarterbacks contribute to a team winning through passing, helping gain points by throwing touchdown passes and avoiding sacks. More touchdowns and passing yards along with less sacks lead to a higher rating. These factors all indicate that a better quarterback helps the team win more games, making them an important position. 
+
+\pagebreak
+
+##Wide Receiver Analysis
+```{r, echo=FALSE, warning=FALSE}
+winning_wr <- read_excel("winning wr.xlsx")
+winning_wr <- subset(winning_wr, select= -c(Player, Team))
+row.names(winning_wr) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_wr <- as.matrix.data.frame(winning_wr)
+kable(winning_wr[1:8, 1:7], align = 'c', caption = "Statistics of the Wide Receivers of the Winning Teams")
+
+losing_wr <- read_excel("losing wr.xlsx")
+losing_wr <- subset(losing_wr, select= -c(Player, Team))
+row.names(losing_wr) <- (c("NYJ", "SF","CLE","DEN","NYG","CHI","TB","HOU"))
+losing_wr <- as.matrix.data.frame(losing_wr)
+kable(losing_wr[1:8, 1:7], align = 'c', caption = "Statistics of the Wide Receivers of the Losing Teams")
+
+wrt1 <- t.test(winning_wr[,1], losing_wr[,1], paired = TRUE) 
+wrt2 <- t.test(winning_wr[,2], losing_wr[,2], paired = TRUE)
+wrt3 <- t.test(winning_wr[,3], losing_wr[,3], paired = TRUE)
+wrt4 <- t.test(winning_wr[,4], losing_wr[,4], paired = TRUE)
+wrt5 <- t.test(winning_wr[,5], losing_wr[,5], paired = TRUE)
+wrt6 <- t.test(winning_wr[,6], losing_wr[,6], paired = TRUE)
+wrt7 <- t.test(winning_wr[,7], losing_wr[,7], paired = TRUE)
+wrttable <- map_df(list(wrt1, wrt2, wrt3, wrt4, wrt5, wrt6 ,wrt7), tidy)
+rownames(wrttable) <- c("Recep", "Yards", "Avg Yards", "YPG", "TD", "First Downs", "YAC")
+kable(wrttable, caption= "T Test comparing Winning and Losing Team WR Statistics", align = 'c')
+```
+
+###Interpretation
+The T-table shows that none of the differences between the wide receiver stats of the winning and losing teams were significant. This means that a wide receiver and receving statistics do not significantly vary between winning and losing teams, indicating that wide receivers are not a primary reason for a team winning more games. This could be because while the receivers are able to preform similarly when they have the ball, worse teams might not have as many offensive opportunities. So while the wide receivers are able to perform well, the teams that lose more may not have as many opportunities to take advantage of their skills. 
+
+\pagebreak
+
+##Running Back Analysis
+```{r, echo=FALSE, warning=FALSE}
+winning_rb <- read_excel("winning rb.xlsx")
+winning_rb <- subset(winning_rb, select= -c(Player, Team))
+row.names(winning_rb) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_rb <- as.matrix.data.frame(winning_rb)
+kable(winning_rb[1:8, 1:6], align = 'c', caption = "Statistics of the Running Backs of the Winning Teams")
+
+losing_rb <- read_excel("losing rb.xlsx")
+losing_rb <- subset(losing_rb, select= -c(Player, Team))
+row.names(losing_rb) <- (c("NYJ", "SF","CLE","DEN","NYG","CHI","TB","HOU"))
+losing_rb <- as.matrix.data.frame(losing_rb)
+kable(losing_rb[1:8, 1:6], align = 'c', caption = "Statistics of the Running Backs of the Losing Teams")
+
+rbt1 <- t.test(winning_rb[,1], losing_rb[,1], paired = TRUE) 
+rbt2 <- t.test(winning_rb[,2], losing_rb[,2], paired = TRUE)
+rbt3 <- t.test(winning_rb[,3], losing_rb[,3], paired = TRUE)
+rbt4 <- t.test(winning_rb[,4], losing_rb[,4], paired = TRUE)
+rbt5 <- t.test(winning_rb[,5], losing_rb[,5], paired = TRUE)
+rbt6 <- t.test(winning_rb[,6], losing_rb[,6], paired = TRUE)
+rbttable <- map_df(list(rbt1, rbt2, rbt3, rbt4, rbt5, rbt6), tidy)
+rownames(rbttable) <- c("Attempts", "Total Yards", "Avg", "YPG", "TD", "First Downs")
+kable(rbttable, caption= "T Test comparing Winning and Losing Team RB Statistics", align = 'c')
+```
+
+###Interpretation 
+The T-table shows that there are significant differences between the winning and losing teams for the average rushing yards per carry and the number of touchdown scored statistics for the running backs. This means that the running backs contribute most to a team through yards gained per carry, not just overall, and by scoring touchdowns. Both of these contribute to a win by moving the team down the field and scoring points. Therefore, the more yards a running back can gain in one carry and the more touchdowns they can score, the more likely their team is to win. 
+
+\pagebreak
+
+##Defense Analysis
+```{r, echo=FALSE, warning=FALSE}
+winning_defense <- read_excel("winning defense.xlsx")
+winning_defense <- subset(winning_defense, select= -c(Player, Team))
+row.names(winning_defense) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_defense <- as.matrix.data.frame(winning_defense)
+kable(winning_defense[1:8, 1:7], align = 'c', caption = "Statistics of the Defense of the Winning Teams")
+
+losing_defense <- read_excel("losing defense.xlsx")
+losing_defense <- subset(losing_defense, select= -c(Player, Team))
+row.names(losing_defense) <- (c("NYJ", "SF","CLE","DEN","NYG","CHI","TB","HOU"))
+losing_defense <- as.matrix.data.frame(losing_defense)
+kable(losing_defense[1:8, 1:7], align = 'c', caption = "Statistics of the Defense of the Losing Teams")
+
+dt1 <- t.test(winning_defense[,1], losing_defense[,1], paired = TRUE) 
+dt2 <- t.test(winning_defense[,2], losing_defense[,2], paired = TRUE)
+dt3 <- t.test(winning_defense[,3], losing_defense[,3], paired = TRUE)
+dt4 <- t.test(winning_defense[,4], losing_defense[,4], paired = TRUE)
+dt5 <- t.test(winning_defense[,5], losing_defense[,5], paired = TRUE)
+dt6 <- t.test(winning_defense[,6], losing_defense[,6], paired = TRUE)
+dt7 <- t.test(winning_defense[,7], losing_defense[,7], paired = TRUE)
+dttable <- map_df(list(dt1, dt2, dt3, dt4, dt5, dt6, dt7), tidy)
+rownames(dttable) <- c("Int", "Return Yards", "Return Avg", "TD", "Solo Tackle", "Asst Tackle", "Sack")
+kable(dttable, caption= "T Test comparing Winning and Losing Team Defense Statistics", align = 'c')
+```
+
+###Interpretation
+The T-tablel shows that the only difference between the winning teams and losing teams that is significant is the number of interceptions. The winning defenses had more interceptions. The more interceptions a defense can make, the less the other team's offense has the ball, giving them less opporutnites to score. So the a winning team has a defense that is able to make more interceptions and limit the other team's chance to score. 
+
+\pagebreak 
+
+##Mock Draft Predictions Analysis
+```{r, echo=FALSE, warning=FALSE}
+mock_draft_picks <- read_excel("mock draft picks.xlsx")
+mock_draft_teams <- read_excel("mock draft picks.xlsx")
+mock_draft_picks <- subset(mock_draft_picks, select = -c(Team))
+row.names(mock_draft_picks) <- c("CLE", "NYG", "NYJ", "CLE2", "DEN", "IND", "TB", "CHI", 
+                                 "SF", "LA", "MIA", "BUF", "WAS", "GB", "ARZ", "BAL", 
+                                 "LAC", "SEA", "DAL", "DET", "CIN", "BUF2", "NE", "CAR", 
+                                 "TEN", "ATL", "NO", "PIT", "JAX", "MIN", "NE2", "PHI")
+```
+
+```{r, echo=FALSE, warning=FALSE}
+mock.4 <- mock_draft_picks %>% count(`Best Guess`)
+mock.5 <- subset(mock.4, select = c("n"))
+row.names(mock.5) <- c("CB", "DE", "DT", "G", "ILB", "OLB", "OT", "QB", "RB", "S", "TE", "UNSURE", "WR")
+colnames(mock.5) <- c("frequency")
+mock.6 <- as.matrix.data.frame(mock.5)
+barplot(mock.6[,1], 
+        names.arg=rownames(mock.6), 
+        main="Frequency of Position Picks", 
+        col = "darkblue", 
+        las = 2)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+mock.1 <- mock_draft_picks %>% count(Category)
+mock.2 <- subset(mock.1, select = c("n"))
+row.names(mock.2) <- c("defense", "passing", "receiving", "rushing", "unsure")
+colnames(mock.2) <- c("frequency")
+mock.3 <- as.matrix.data.frame(mock.2)
+barplot(mock.3[,1], 
+        names.arg=rownames(mock.3), 
+        main="Frequency of Category Picks", 
+        col = "darkblue", 
+        las = 2)
+```
+
+```{r, echo=FALSE}
+percentages_teams <- read_excel("percentages teams.xlsx")
+mock.7 <- full_join(percentages_teams, mock_draft_teams, by = "Team")
+mock.7 <- mock.7 %>% na.exclude()
+mock.8 <- mock.7 %>% select(`Team`, `Percentage`, `Category`)
+mock.9 <- mock.8[1:14, 1:3]
+```
+
+```{r, echo=FALSE}
+winning_picks <- mock.9[1:7, 1:3]
+winning_picks2 <- winning_picks %>% count(`Category`)
+colnames(winning_picks2) <- c("Category", "Frequency")
+kable(winning_picks2, caption = "Position Category for Picks of Winning Teams", align = 'c')
+```
+
+```{r, echo=FALSE}
+losing_picks <- mock.9[8:14, 1:3]
+losing_picks2 <- losing_picks %>% count(`Category`)
+colnames(losing_picks2) <- c("Category", "Frequency")
+kable(losing_picks2, caption = "Position Category for Picks of Losing Teams", align = 'c')
+```
+
+```{r, echo=FALSE, warning=FALSE}
+defence_percentages <- mock.9 %>% filter(`Category`=="defense")
+defence_percentages_average <- mean(defence_percentages$Percentage)
+
+passing_percentages <- mock.9 %>% filter(`Category`=="passing")
+passing_percentages_average <- mean(passing_percentages$Percentage)
+
+rushing_percentages <- mock.9 %>% filter(`Category`=="rushing")
+rushing_percentages_average <- mean(rushing_percentages$Percentage)
+
+receiving_percentages <- mock.9 %>% filter(`Category`=="receiving")
+receiving_percentages_average <- mean(receiving_percentages$Percentage)
+
+ptable <- map_df(list(receiving_percentages_average, defence_percentages_average,  rushing_percentages_average, passing_percentages_average  ), tidy)
+rownames(ptable) <- c("Receiving", "Defense","Rushing", "Passing" )
+colnames(ptable) <- c("Win Percentage")
+kable(ptable, caption= "Averege Winning Percentages Based on Pick Position", align = 'c')
+```
+
+###Interpretation
+
+The mock draft picks are the guesses of NFL analysist, making predictions of who each team will pick based on their draft number and the needs of the team. After looking at the best guesses for each of the teams and the position category it fell into, there were several trends.
+
+There were a wide range of positions that were selects, but most of the picks fell into the defensive category. This is because the defensive category is the most generic and includes more positions. The other categories only include one positon. 
+
+The teams with the lowest winning percentages picked passing/quarterbacks and rushing/running backs. This makes sense because they get the highest draft order and are able to pick from a wider range of positions and player. Because they have a wider selection to pick from, they select players from the category that statistically has the most impact on helping a team win.  
+
+The teams with the highest winning percentages picked receiving player/wide receivers and defensive players. This makes sense because they have the lowest impact on success and they have the lowest draft order numbers, so the other teams did not select them and the teams have less options to choose from. 
+
+\pagebreak 
+
+##The After the Draft Analysis
+Using real time data, I compared the Mock Draft Predictions to the actual Draft Picks. 
+The table below shows the best guess prediction for the first round of picks compared to the actual picks made by each team.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+actual_picks <- read_excel("actual picks.xlsx")
+mock_actual <- full_join(mock_draft_teams, actual_picks, by="Team")
+rownames(mock_actual) <- c("CLE",  "NYG",  "NYJ",  "CLE2", "DEN",  "IND",     
+                           "TB", "CHI",  "SF",   "LA",   "MIA",  "BUF", 
+                           "WAS",  "GB",   "ARZ",  "BAL",  "LAC",  "SEA",  
+                           "DAL",  "DET",  "CIN",  "BUF2", "NE",   "CAR", 
+                           "TEN",  "ATL",  "NO",   "PIT",  "JAX",  "MIN",  
+                           "NE2",  "PHI",  "BAL2")
+mock_actual <- subset(mock_actual, select = c("Team", "Best Guess", "Category", 
+                                              "Actual Pick", "Actual Category"))
+mock_actual.2 <- mock_actual %>% count(`Best Guess`)  
+colnames(mock_actual.2) <- c("pick", "guess freq")
+mock_actual.3 <- mock_actual %>% count(`Actual Pick`)
+colnames(mock_actual.3) <- c("pick", "actual freq")
+mock_actual.4 <- mock_actual %>% count(`Category`)
+mock_actual.5 <- mock_actual %>% count(`Actual Category`)
+mock_actual_picks <- full_join(mock_actual.2, mock_actual.3,  by="pick") 
+mock_actual_picks <- mock_actual_picks[-c(12, 14), -c(1)]
+mock_actual_picks[is.na(mock_actual_picks)] <- 0 
+rownames(mock_actual_picks) <- c("CB", "DE", "DT", "G", "ILB", "OLB", 
+                                 "OT",  "QB",  "RB",  "S",   "TE",  
+                                 "WR",  "C",   "LB", "T")
+mock_actual_picks <- read_excel("mock_actual_picks2.xlsx")
+mock_actual_picks <- as.matrix.data.frame(mock_actual_picks)
+rownames(mock_actual_picks) <- c("guess freq", "actual freq")
+barplot(height = mock_actual_picks[1:2, 1:15], 
+        main="Comparison of Postion Picks 
+Between Mock & Real Draft", 
+        col = c("darkblue", "red"), 
+        las = 2, 
+        beside = TRUE, 
+        cex.names=.7)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+mock_actual.4 <- mock_actual %>% count(`Category`)
+mock_actual.5 <- mock_actual %>% count(`Actual Category`)
+colnames(mock_actual.4) <- c("category", "mock pick freq")
+colnames(mock_actual.5) <- c("category", "actual pick freq")
+mock_actual_picks3 <- full_join(mock_actual.4, mock_actual.5,  by="category") 
+mock_actual_picks3 <- mock_actual_picks3[-c(5:6),]
+mock_actual_picks3 <- read_excel("mock_actual_picks3.xlsx")
+mock_actual_picks3 <- as.matrix.data.frame(mock_actual_picks3)
+rownames(mock_actual_picks3) <- c("guess freq", "actual freq")
+barplot(height = mock_actual_picks3[1:2, 1:4], 
+        main="Comparison of Postion Categories 
+Between Mock & Real Draft", 
+        col = c("darkblue", "red"), 
+        las = 2, 
+        beside = TRUE, 
+        cex.names=.7)
+```
+
+Looking at this chart we can see that the mock draft was relatively close to what happened in the actual draft. The picks and the categories they fall into are similar to what the mock draft and data analysis predicted, showing that the position analysis was correct.
+
+###Sentiment Analysis
+Using the real time press releases of the top two teams, the Patriots and the Eagles, and the bottom two teams, the Browns and the Giants, I was able to analyze the how the teams felt about the picks and how they are going to impact the upcoming season.
+
+###The Patriots 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6}
+patriots <- readtext("patriots drafts picks.txt")
+patriots.1 <- as.data.frame(patriots) %>% unnest_tokens(word, text)
+data(stop_words)
+patriots.2 <- patriots.1 %>% anti_join(stop_words)
+patriots.3 <- patriots.2 %>% count(word, sort = TRUE)
+patriots.4 <- as_tibble(patriots.3)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=1.5, fig.width=5}
+patriots.sentiment <- patriots.4 %>%
+  inner_join(get_sentiments("bing")) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+ggplot(patriots.sentiment, aes(word, sentiment, fill = word)) +
+  geom_col(show.legend = FALSE)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+patriots.sentiment2 <- patriots.4 %>%
+  inner_join(get_sentiments("nrc")) %>%
+  spread(sentiment, n, fill = 0)
+ggplot(patriots.sentiment2, aes(word, positive, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(patriots.sentiment2, aes(word, anticipation, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(patriots.sentiment2, aes(word, trust, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+\pagebreak 
+
+###The Eagles 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+eagles <- readtext("eagles draft picks.txt")
+eagles.1 <- as.data.frame(eagles) %>% unnest_tokens(word, text)
+data(stop_words)
+eagles.2 <- eagles.1 %>% anti_join(stop_words)
+eagles.3 <- eagles.2 %>% count(word, sort = TRUE)
+eagles.4 <- as_tibble(eagles.3)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+eagles.sentiment <- eagles.4 %>%
+  inner_join(get_sentiments("bing")) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+ggplot(eagles.sentiment, aes(word, sentiment, fill = word)) +
+  geom_col(show.legend = FALSE)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+eagles.sentiment2 <- eagles.4 %>%
+  inner_join(get_sentiments("nrc")) %>%
+  spread(sentiment, n, fill = 0)
+ggplot(eagles.sentiment2, aes(word, positive, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(eagles.sentiment2, aes(word, anticipation, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(eagles.sentiment2, aes(word, trust, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+\pagebreak
+
+###The Giants 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+giants <- readtext("giants drafts picks.txt")
+giants.1 <- as.data.frame(giants) %>% unnest_tokens(word, text)
+data(stop_words)
+giants.2 <- giants.1 %>% anti_join(stop_words)
+giants.3 <- giants.2 %>% count(word, sort = TRUE)
+giants.4 <- as_tibble(giants.3)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+giants.sentiment <- giants.4 %>%
+  inner_join(get_sentiments("bing")) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+ggplot(giants.sentiment, aes(word, sentiment, fill = word)) +
+  geom_col(show.legend = FALSE)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+giants.sentiment2 <- giants.4 %>%
+  inner_join(get_sentiments("nrc")) %>%
+  spread(sentiment, n, fill = 0)
+ggplot(giants.sentiment2, aes(word, positive, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(giants.sentiment2, aes(word, anticipation, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(giants.sentiment2, aes(word, trust, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+\pagebreak 
+
+###The Browns
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+browns <- readtext("browns drafts picks.txt")
+browns.1 <- as.data.frame(browns) %>% unnest_tokens(word, text)
+data(stop_words)
+browns.2 <- browns.1 %>% anti_join(stop_words)
+browns.3 <- browns.2 %>% count(word, sort = TRUE)
+browns.4 <- as_tibble(browns.3)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+browns.sentiment <- browns.4 %>%
+  inner_join(get_sentiments("bing")) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+ggplot(browns.sentiment, aes(word, sentiment, fill = word)) +
+  geom_col(show.legend = FALSE)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+browns.sentiment2 <- browns.4 %>%
+  inner_join(get_sentiments("nrc")) %>%
+  spread(sentiment, n, fill = 0)
+ggplot(browns.sentiment2, aes(word, positive, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(browns.sentiment2, aes(word, anticipation, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2, fig.width=5}
+ggplot(browns.sentiment2, aes(word, trust, fill = word)) +
+  geom_col(show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+\pagebreak 
+
+###Sentiment Analysis Interpretation 
+
+The main emotions that stuck out from the sentiment analysis were positive and negative, anticipation and trust. 
+
+##Overall Analysis and Interpretiation 
