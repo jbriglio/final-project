@@ -1,5 +1,4 @@
 library(shiny)
-library(tidyverse)
 library(datasets)
 
 ui <- navbarPage("NFL Analysis",  
