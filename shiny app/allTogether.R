@@ -1,5 +1,33 @@
 library(shiny)
 library(datasets)
+library(readr)
+library(dplyr)
+library(markdown)
+library(tidyverse)
+
+yearly_records <- read_csv("yearly_records_csv.csv") %>% as.matrix.data.frame()
+rownames(yearly_records) <- yearly_records[,1]
+yearly_records <- subset(yearly_records, select= -c(Year))
+
+winning_quarterbacks <- read_csv("winning quarterbacks csv.csv")
+winning_quarterbacks <-subset(winning_quarterbacks, select= -c(Player, Team))
+row.names(winning_quarterbacks) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_quarterbacks <- as.matrix.data.frame(winning_quarterbacks)
+
+winning_rb <- read_csv("winning rb csv.csv")
+winning_rb <- subset(winning_rb, select= -c(Player, Team))
+row.names(winning_rb) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_rb <- as.matrix.data.frame(winning_rb)
+
+winning_wr <- read_csv("winning wr csv.csv")
+winning_wr <- subset(winning_wr, select= -c(Player, Team))
+row.names(winning_wr) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_wr <- as.matrix.data.frame(winning_wr)
+
+winning_defense <- read_csv("winning defense csv.csv")
+winning_defense <- subset(winning_defense, select= -c(Player, Team))
+row.names(winning_defense) <- (c("KC","NO","NE","PHI","LA","MIN","PIT","JAX"))
+winning_defense <- as.matrix.data.frame(winning_defense)
 
 ui <- navbarPage("NFL Analysis",  
                  

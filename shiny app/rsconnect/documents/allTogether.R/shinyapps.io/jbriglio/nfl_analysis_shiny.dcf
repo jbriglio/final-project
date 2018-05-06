@@ -5,8 +5,8 @@ account: jbriglio
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 337872
-bundleId: 1357454
+bundleId: 1358681
 url: https://jbriglio.shinyapps.io/nfl_analysis_shiny/
-when: 1525535793.15062
+when: 1525625187.90729
 asMultiple: FALSE
 asStatic: FALSE
