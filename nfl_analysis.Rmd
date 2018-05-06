@@ -341,7 +341,7 @@ The teams with the highest winning percentages picked receiving player/wide rece
 Using real time data, I compared the Mock Draft Predictions to the actual Draft Picks. 
 The table below shows the best guess prediction for the first round of picks compared to the actual picks made by each team.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height= 4}
 actual_picks <- read_excel("actual picks.xlsx")
 mock_actual <- full_join(mock_draft_teams, actual_picks, by="Team")
 rownames(mock_actual) <- c("CLE",  "NYG",  "NYJ",  "CLE2", "DEN",  "IND",     
@@ -376,7 +376,7 @@ Between Mock & Real Draft",
         cex.names=.7)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height= 4}
 mock_actual.4 <- mock_actual %>% count(`Category`)
 mock_actual.5 <- mock_actual %>% count(`Actual Category`)
 colnames(mock_actual.4) <- c("category", "mock pick freq")
@@ -592,4 +592,22 @@ ggplot(browns.sentiment2, aes(word, trust, fill = word)) +
 
 The main emotions that stuck out from the sentiment analysis were positive and negative, anticipation and trust. 
 
+All four teams had about an even spread of positive and negative sentiments, but the New England Patriots and the Cleveland Browns had slightly more postive sentiments. Reasons for this may be that they are overall most optimistic and positve about their picks and upcoming season, or that the other teams used football words like "offensive" which were taken as negative sentiments. 
+
+The Patriots has the most constistency in their press release with postive, anticipation and trust sentiments strongly present throughout. They had a good season and are consistently known as one of the best teams in the NFL, so it makes sense that they have the high levels of postive and trust sentiments. Additionally, they were able to get several promising players from the draft, including two players in the first round. This correlates to the high levels of anticipation. 
+
+The Eagles had high levels of positive sentiments throughout, with a concentration of anticipation in the middle and trust at the beginning and end. The Eagles also had a good season and were the Super Bowl Champions. This accounts for the high levels of postivity. However, they have not done as well consitently as the Patriots, which could be why they do not have high levels trust throughout the statement. When they were speaking about their new draft picks in the middle, they did show high levels of anticipation, which shows they are probably looking forward to the next season and are happy with their new players. 
+
+The Giants' strongest and most present sentiments was positivity and anticipation. They did not have a great season, but need to make sure that they are communicating the idea that they have been making positive changes and are excited about next season. They also had a fair amount of trust statements, which could be because they are trying to show that they have faith in the players and the team to have a better season next season. 
+
+The Browns had the least amount of positive sentiments. This make sense because they lost every game this season. The highest level of positive sentiments happens around the same time as their highest level of anticipation. This is probably when they were talking about their new picks, showing that they are very excited about them and think they will help the team. They ended with high levels of trust, showing that like the Giants, they trust their players and their team to win games. 
+
 ##Overall Analysis and Interpretiation 
+
+Overall, the data analysis on the different postitions showed that there was a difference between players on the winning and losing teams in most positions. Quarterback made the most difference, followed by running backs, then defense and wide receivers mattered the least. 
+
+The mock draft predicted that the positions analysis was very closely related to what the teams would pick. The real time drafts then solidified this. The teams with the lowest records picked quarterbacks and the teams with the higher records picked defensive players and wide receivers. 
+
+Finally, the press releases correlated to the overall winning and losing records and showed that all of the teams were excited and hopeful about their new picks and ready for next season.
+
+Shiny Website: https://jbriglio.shinyapps.io/nfl_analysis_shiny/
