@@ -243,7 +243,7 @@ kable(dttable, caption= "T Test comparing Winning and Losing Team Defense Statis
 ```
 
 ###Interpretation
-The T-tablel shows that the only difference between the winning teams and losing teams that is significant is the number of interceptions. The winning defenses had more interceptions. The more interceptions a defense can make, the less the other team's offense has the ball, giving them less opporutnites to score. So the a winning team has a defense that is able to make more interceptions and limit the other team's chance to score. 
+The T-table shows that the only difference between the winning teams and losing teams that is significant is the number of interceptions. The winning defenses had more interceptions. The more interceptions a defense can make, the less the other team's offense has the ball, giving them less opporutnites to score. So the winning team has a defense that is able to make more interceptions and limit the other team's chance to score. 
 
 \pagebreak 
 
@@ -329,7 +329,7 @@ kable(ptable, caption= "Averege Winning Percentages Based on Pick Position", ali
 
 The mock draft picks are the guesses of NFL analysist, making predictions of who each team will pick based on their draft number and the needs of the team. After looking at the best guesses for each of the teams and the position category it fell into, there were several trends.
 
-There were a wide range of positions that were selects, but most of the picks fell into the defensive category. This is because the defensive category is the most generic and includes more positions. The other categories only include one positon. 
+There were a wide range of positions that were selected, but most of the picks fell into the defensive category. This is because the defensive category is the most generic and includes more positions. The other categories only include one positon. 
 
 The teams with the lowest winning percentages picked passing/quarterbacks and rushing/running backs. This makes sense because they get the highest draft order and are able to pick from a wider range of positions and player. Because they have a wider selection to pick from, they select players from the category that statistically has the most impact on helping a team win.  
 
@@ -398,7 +398,7 @@ Between Mock & Real Draft",
 Looking at this chart we can see that the mock draft was relatively close to what happened in the actual draft. The picks and the categories they fall into are similar to what the mock draft and data analysis predicted, showing that the position analysis was correct.
 
 ###Sentiment Analysis
-Using the real time press releases of the top two teams, the Patriots and the Eagles, and the bottom two teams, the Browns and the Giants, I was able to analyze the how the teams felt about the picks and how they are going to impact the upcoming season.
+Using the real time press releases of the top two teams, the Patriots and the Eagles, and the bottom two teams, the Browns and the Giants, I was able to analyze how the teams felt about the picks and how they are going to impact the upcoming season.
 
 ###The Patriots 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6}
@@ -598,7 +598,7 @@ The Patriots has the most constistency in their press release with postive, anti
 
 The Eagles had high levels of positive sentiments throughout, with a concentration of anticipation in the middle and trust at the beginning and end. The Eagles also had a good season and were the Super Bowl Champions. This accounts for the high levels of postivity. However, they have not done as well consitently as the Patriots, which could be why they do not have high levels trust throughout the statement. When they were speaking about their new draft picks in the middle, they did show high levels of anticipation, which shows they are probably looking forward to the next season and are happy with their new players. 
 
-The Giants' strongest and most present sentiments was positivity and anticipation. They did not have a great season, but need to make sure that they are communicating the idea that they have been making positive changes and are excited about next season. They also had a fair amount of trust statements, which could be because they are trying to show that they have faith in the players and the team to have a better season next season. 
+The Giants' strongest and most present sentiments were positivity and anticipation. They did not have a great season, but need to make sure that they are communicating the idea that they have been making positive changes and are excited about next season. They also had a fair amount of trust statements, which could be because they are trying to show that they have faith in the players and the team to have a better season next season. 
 
 The Browns had the least amount of positive sentiments. This make sense because they lost every game this season. The highest level of positive sentiments happens around the same time as their highest level of anticipation. This is probably when they were talking about their new picks, showing that they are very excited about them and think they will help the team. They ended with high levels of trust, showing that like the Giants, they trust their players and their team to win games. 
 
